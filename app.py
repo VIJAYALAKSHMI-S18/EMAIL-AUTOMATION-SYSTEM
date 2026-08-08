@@ -3,90 +3,54 @@ import os
 from database.database import init_db
 from modules.candidate_manager import seed_sample_candidates_if_empty
 from utils.auth import is_authenticated, logout_user, get_current_user
+from utils.theme import get_current_theme, toggle_theme, get_theme_css
 
 # Page Configuration
 st.set_page_config(
-    page_title="Email Automation Portal - Smart Recruitment Communication Management",
+    page_title="RecruitFlow Enterprise Portal",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom Executive SaaS CSS Styling
-CUSTOM_CSS = """
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* Header & Branding */
-    .sidebar-brand {
-        text-align: center;
-        padding: 12px 0;
-        margin-bottom: 12px;
-        border-bottom: 1px solid #E2E8F0;
-    }
-    .brand-title {
-        font-size: 22px;
-        font-weight: 800;
-        color: #2563EB;
-        margin: 0;
-    }
-    .brand-tagline {
-        font-size: 11px;
-        color: #64748B;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    /* Metric Cards Customization */
-    [data-testid="stMetric"] {
-        background-color: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        padding: 16px;
-        border-radius: 10px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-    }
-    [data-testid="stMetricValue"] {
-        font-size: 26px;
-        font-weight: 700;
-        color: #1E293B;
-    }
-
-    /* General Card Styling */
-    .saas-card {
-        background-color: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-    }
-</style>
-"""
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
-
-# Initialize Database & Sample Data
+# 1. Initialize Database & Sample Data
 init_db()
 seed_sample_candidates_if_empty()
 
-# 1. Authentication Check
+# 2. Inject Dynamic Theme CSS & Custom Cursor
+active_theme = get_current_theme()
+theme_css = get_theme_css(active_theme)
+st.markdown(theme_css, unsafe_allow_html=True)
+
+# 3. Authentication Check
 if not is_authenticated():
     from pages.login import render_login_page
     render_login_page()
 else:
-    # 2. Main Authenticated Application Sidebar Navigation
+    # Authenticated Main Portal Layout
     user_info = get_current_user()
 
+    # Sidebar Header & Theme Toggle Switcher
     st.sidebar.markdown(f"""
     <div class="sidebar-brand">
-        <div class="brand-title">RecruitFlow Portal</div>
-        <div class="brand-tagline">Recruitment Automation</div>
-        <div style="margin-top: 8px; font-size: 12px; color: #475569; font-weight: 600;">
+        <div class="brand-title">RecruitFlow</div>
+        <div class="brand-tagline">Enterprise HR Portal</div>
+        <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary); font-weight: 600;">
             👤 {user_info['name']}
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Stylish Theme Switcher Toggle Button in Sidebar
+    t_col1, t_col2 = st.sidebar.columns([3, 1])
+    with t_col1:
+        st.markdown(f"**Theme**: {'🌙 Dark' if active_theme == 'dark' else '☀️ Light'}")
+    with t_col2:
+        if st.button("🔄", key="theme_toggle_btn", help="Switch between Dark & Light Mode"):
+            toggle_theme()
+            st.rerun()
+
+    st.sidebar.markdown("---")
 
     # Navigation Menu
     nav_choice = st.sidebar.radio(
@@ -107,18 +71,19 @@ else:
 
     st.sidebar.markdown("---")
 
-    # Logout Action Button in Sidebar
+    # Logout Button
     if st.sidebar.button("🚪 Logout", key="sidebar_logout_btn", use_container_width=True):
         logout_user()
+        st.toast("Signed out successfully.", icon="👋")
         st.rerun()
 
     st.sidebar.markdown("""
-    <div style="text-align: center; font-size: 11px; color: #94A3B8; margin-top: 20px;">
-        Email Automation Portal v2.0<br/>Streamlit Enterprise Edition
+    <div style="text-align: center; font-size: 11px; color: var(--text-secondary); margin-top: 20px;">
+        RecruitFlow Enterprise v2.5<br/>SaaS Edition
     </div>
     """, unsafe_allow_html=True)
 
-    # 3. Page Routing Engine
+    # 4. Page Routing Engine
     if nav_choice == "🏠 Dashboard":
         from pages.dashboard import render_dashboard_page
         render_dashboard_page()

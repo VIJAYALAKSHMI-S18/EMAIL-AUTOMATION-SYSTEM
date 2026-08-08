@@ -10,7 +10,7 @@ from modules.email_sender import process_email_dispatch
 
 def render_email_automation_page():
     st.markdown("## Email Campaign Automation")
-    st.markdown("Compose personalized recruitment emails, preview rendered content, attach documents, and launch bulk campaigns.")
+    st.markdown("Compose personalized recruitment emails, preview rendered content per candidate, attach documents, and launch bulk campaigns.")
 
     all_candidates = get_all_candidates()
 
@@ -47,7 +47,7 @@ def render_email_automation_page():
     st.markdown("---")
 
     # Step 2: Email Template Selection & Composer
-    st.markdown("### 2. Choose Template & Personalize")
+    st.markdown("### 2. Compose Email")
 
     templates = get_all_templates()
     template_names = [t["template_name"] for t in templates]
@@ -55,29 +55,28 @@ def render_email_automation_page():
     selected_t_name = st.selectbox("Predefined Email Template", template_names, key="sel_template_name")
     active_template = next((t for t in templates if t["template_name"] == selected_t_name), templates[0])
 
-    # Template Editor
-    subject_input = st.text_input("Subject Line", value=active_template["subject"], key="em_subject_input")
-    body_input = st.text_area("Email Body Content", value=active_template["body"], height=200, key="em_body_input")
+    # SaaS Composer Container
+    with st.container():
+        subject_input = st.text_input("Subject Line", value=active_template["subject"], key="em_subject_input")
+        body_input = st.text_area("Email Body Content", value=active_template["body"], height=200, key="em_body_input")
 
     # Placeholder Reference Guide
     with st.expander("Available Personalization Placeholders", expanded=False):
         st.markdown("""
-        Use the following dynamic placeholders in your subject line and email body. They will be automatically replaced per candidate:
-        - `{Name}` : Candidate's Full Name (e.g. Vijay Kumar)
-        - `{Candidate_ID}` : Candidate's Unique ID (e.g. C001)
-        - `{Email}` : Recipient Email Address
-        - `{Phone}` : Candidate Phone Number
-        - `{Position}` : Position Title (e.g. Python Developer)
-        - `{Department}` : Department (e.g. IT)
-        - `{Company}` : Company Name (e.g. ABC Technologies)
-        - `{Joining_Date}` : Proposed Joining Date (e.g. 2026-09-01)
-        - `{Salary}` : Formatted Salary Amount (e.g. $45,000.00)
+        Use dynamic placeholders in your subject line and email body (substituted per candidate):
+        - `{{name}}` or `{Name}` : Candidate's Full Name
+        - `{{candidate_id}}` or `{Candidate_ID}` : Candidate ID
+        - `{{email}}` or `{Email}` : Recipient Email Address
+        - `{{position}}` or `{Position}` : Position Title
+        - `{{department}}` or `{Department}` : Department
+        - `{{company}}` or `{Company}` : Company Name
+        - `{{joining_date}}` or `{Joining_Date}` : Proposed Joining Date
+        - `{{salary}}` or `{Salary}` : Formatted Salary
         """)
 
-    # Option to save modified template
     if st.button("Save Template Changes", key="btn_save_template"):
         save_email_template(selected_t_name, subject_input, body_input)
-        st.success(f"Template '{selected_t_name}' updated successfully.")
+        st.toast(f"Template '{selected_t_name}' updated successfully.", icon="✅")
 
     st.markdown("---")
 
@@ -87,13 +86,13 @@ def render_email_automation_page():
         "Attach Personalized Candidate Document(s)",
         ["None", "Offer Letter", "Certificate", "Both"],
         index=3,
-        help="Each candidate will receive ONLY their own personalized document(s). Documents will be auto-generated if missing."
+        help="Each candidate receives ONLY their own personalized document(s). Files auto-generate if missing."
     )
 
     st.markdown("---")
 
-    # Step 4: Live Email Preview
-    st.markdown("### 4. Candidate Live Email Preview")
+    # Step 4: Candidate Live Email Preview Modal / Panel
+    st.markdown("### 4. Email Preview Panel")
     
     if not selected_candidates:
         st.warning("Select candidates above to preview personalized email output.")
@@ -108,13 +107,16 @@ def render_email_automation_page():
         preview_data = get_email_preview(subject_input, body_input, cand_for_preview, attachment_choice)
 
         st.markdown(f"""
-        <div style="border: 1px solid #CBD5E1; border-radius: 8px; padding: 16px; background-color: #F8FAFC; color: #0F172A;">
+        <div class="saas-card">
+            <div style="border-bottom: 1px solid var(--card-border); padding-bottom: 10px; margin-bottom: 12px;">
+                <span class="badge badge-info">EMAIL PREVIEW</span>
+            </div>
             <p><strong>To:</strong> {preview_data['recipient_name']} &lt;{preview_data['recipient_email']}&gt;</p>
             <p><strong>Subject:</strong> {preview_data['subject']}</p>
-            <hr style="border: 0.5px solid #E2E8F0;" />
-            <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; color: #1E293B;">{preview_data['body']}</pre>
-            <hr style="border: 0.5px solid #E2E8F0;" />
-            <p><strong>Attachments:</strong> {', '.join([f'{a}' for a in preview_data['attachments']]) if preview_data['attachments'] else 'None'}</p>
+            <hr style="border: 0.5px solid var(--card-border);" />
+            <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; color: var(--text-primary);">{preview_data['body']}</pre>
+            <hr style="border: 0.5px solid var(--card-border);" />
+            <p><strong>Attachments:</strong> {', '.join([f'📎 {a}' for a in preview_data['attachments']]) if preview_data['attachments'] else 'None'}</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -131,7 +133,7 @@ def render_email_automation_page():
 
     confirm_check = st.checkbox(f"I confirm that I want to send emails to {len(selected_candidates)} candidates in {email_mode}.", key="chk_confirm_send")
 
-    if st.button("Send Campaign Emails Now", type="primary", disabled=not confirm_check, key="btn_send_campaign"):
+    if st.button("Confirm & Send Email 🚀", type="primary", disabled=not confirm_check, key="btn_send_campaign"):
         progress_bar = st.progress(0)
         status_box = st.empty()
 
@@ -149,11 +151,11 @@ def render_email_automation_page():
 
         status_box.text("Campaign execution completed!")
 
-        # Results breakdown
         successes = [r for r in results if r["status"] == "SUCCESS"]
         failures = [r for r in results if r["status"] == "FAILED"]
 
         if successes:
+            st.toast(f"🎉 Dispatched {len(successes)} email(s) successfully!", icon="✅")
             st.success(f"Successfully dispatched/logged {len(successes)} email(s).")
         if failures:
             st.error(f"Failed to dispatch {len(failures)} email(s). Check Email Logs for failure details.")

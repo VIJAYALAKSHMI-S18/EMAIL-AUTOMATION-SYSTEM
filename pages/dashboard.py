@@ -11,9 +11,10 @@ from database.database import (
     get_setting
 )
 from utils.auth import get_current_user
+from utils.theme import get_current_theme, get_plotly_layout_params
 
 def get_greeting():
-    """Return dynamic greeting based on current time of day."""
+    """Return dynamic time-based greeting."""
     hour = datetime.datetime.now().hour
     if hour < 12:
         return "Good Morning"
@@ -23,18 +24,26 @@ def get_greeting():
         return "Good Evening"
 
 def render_dashboard_page():
+    theme = get_current_theme()
+    plotly_layout = get_plotly_layout_params(theme)
     user = get_current_user()
     greeting = get_greeting()
 
-    st.markdown(f"## {greeting}, {user['name']} 👋")
-    st.markdown("Here's your recruitment communication overview.")
+    st.markdown(f"""
+    <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+            {greeting}, {user['name']} 👋
+        </h2>
+        <p style="font-size: 14px; color: var(--text-secondary);">Here's your recruitment communication overview.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     candidates = get_all_candidates()
     documents = get_all_documents()
     email_logs = get_all_email_logs()
     email_mode = get_setting("email_mode", "Demo Mode")
 
-    # Mode Notice
+    # System Mode Notice
     if email_mode == "Demo Mode":
         st.info("System Mode: Demo Mode (Emails are simulated and logged to SQLite). Switch to Gmail SMTP in Settings for live emails.")
     else:
@@ -51,7 +60,7 @@ def render_dashboard_page():
     # Top Metric Cards Layout
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
-        st.metric("Total Candidates", total_candidates)
+        st.metric("Total Candidates", total_candidates, delta=f"↑ {total_candidates} records")
     with col2:
         st.metric("Selected Candidates", selected_candidates, delta=f"{selection_rate:.1f}% Rate")
     with col3:
@@ -78,10 +87,17 @@ def render_dashboard_page():
                 offer_counts,
                 values='Count',
                 names='Status',
-                hole=0.4,
-                color_discrete_sequence=['#2563EB', '#059669', '#D97706', '#DC2626']
+                hole=0.5,
+                color_discrete_sequence=['#3B82F6', '#10B981', '#F59E0B', '#EF4444']
             )
-            fig1.update_layout(margin=dict(t=20, b=20, l=20, r=20), height=280)
+            fig1.update_layout(
+                template=plotly_layout["template"],
+                paper_bgcolor=plotly_layout["paper_bgcolor"],
+                plot_bgcolor=plotly_layout["plot_bgcolor"],
+                font=plotly_layout["font"],
+                margin=dict(t=20, b=20, l=20, r=20),
+                height=280
+            )
             st.plotly_chart(fig1, use_container_width=True)
         else:
             st.info("No candidates available for plotting.")
@@ -98,14 +114,22 @@ def render_dashboard_page():
                 x='Status',
                 y='Count',
                 color='Status',
-                color_discrete_map={'SUCCESS': '#059669', 'FAILED': '#DC2626', 'PENDING': '#D97706'}
+                color_discrete_map={'SUCCESS': '#10B981', 'FAILED': '#EF4444', 'PENDING': '#F59E0B'}
             )
-            fig2.update_layout(margin=dict(t=20, b=20, l=20, r=20), height=280, showlegend=False)
+            fig2.update_layout(
+                template=plotly_layout["template"],
+                paper_bgcolor=plotly_layout["paper_bgcolor"],
+                plot_bgcolor=plotly_layout["plot_bgcolor"],
+                font=plotly_layout["font"],
+                margin=dict(t=20, b=20, l=20, r=20),
+                height=280,
+                showlegend=False
+            )
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.info("No email campaign logs available yet.")
 
-    # Row 2: Department & Activity Charts
+    # Row 2: Department & Selection Rate Charts
     c3, c4 = st.columns(2)
 
     with c3:
@@ -120,9 +144,16 @@ def render_dashboard_page():
                 x='Candidates',
                 y='Department',
                 orientation='h',
-                color_discrete_sequence=['#1E293B']
+                color_discrete_sequence=['#3B82F6']
             )
-            fig3.update_layout(margin=dict(t=20, b=20, l=20, r=20), height=280)
+            fig3.update_layout(
+                template=plotly_layout["template"],
+                paper_bgcolor=plotly_layout["paper_bgcolor"],
+                plot_bgcolor=plotly_layout["plot_bgcolor"],
+                font=plotly_layout["font"],
+                margin=dict(t=20, b=20, l=20, r=20),
+                height=280
+            )
             st.plotly_chart(fig3, use_container_width=True)
 
     with c4:
@@ -134,14 +165,21 @@ def render_dashboard_page():
             title = {'text': "Selection Rate (%)"},
             gauge = {
                 'axis': {'range': [0, 100]},
-                'bar': {'color': "#2563EB"},
+                'bar': {'color': "#3B82F6"},
                 'steps': [
-                    {'range': [0, 50], 'color': "#F1F5F9"},
-                    {'range': [50, 100], 'color': "#E2E8F0"}
+                    {'range': [0, 50], 'color': "rgba(59, 130, 246, 0.1)"},
+                    {'range': [50, 100], 'color': "rgba(59, 130, 246, 0.2)"}
                 ]
             }
         ))
-        fig4.update_layout(margin=dict(t=30, b=20, l=20, r=20), height=280)
+        fig4.update_layout(
+            template=plotly_layout["template"],
+            paper_bgcolor=plotly_layout["paper_bgcolor"],
+            plot_bgcolor=plotly_layout["plot_bgcolor"],
+            font=plotly_layout["font"],
+            margin=dict(t=30, b=20, l=20, r=20),
+            height=280
+        )
         st.plotly_chart(fig4, use_container_width=True)
 
     st.markdown("---")

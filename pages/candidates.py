@@ -16,12 +16,12 @@ from modules.candidate_manager import filter_candidates, seed_sample_candidates_
 
 def render_candidates_page():
     st.markdown("## Candidate Management")
-    st.markdown("Manage candidate records, import/export via Excel, search, filter, and select candidates for automation.")
+    st.markdown("Manage candidate directory, import/export via Excel, search, filter, and switch between Table and Card views.")
 
     # Ensure sample candidates exist in DB if empty
     seed_sample_candidates_if_empty()
 
-    # Expandable Excel Section: Upload & Download
+    # Expandable Excel Upload & Download Section
     with st.expander("Excel Management (Upload / Download Template / Export)", expanded=False):
         ex_col1, ex_col2, ex_col3 = st.columns(3)
 
@@ -38,7 +38,7 @@ def render_candidates_page():
             )
 
         with ex_col2:
-            st.markdown("#### 2. Upload Candidate Excel")
+            st.markdown("#### 2. Drag & Drop Candidate Excel")
             uploaded_file = st.file_uploader("Upload Excel file (.xlsx)", type=["xlsx"], key="uploader_excel")
             if uploaded_file is not None:
                 try:
@@ -46,12 +46,12 @@ def render_candidates_page():
                     val_result = validate_excel_dataframe(df_upload)
 
                     if val_result["is_valid"]:
-                        st.success("Excel uploaded and validated successfully.")
-                        st.info(f"Total: {val_result['summary']['total']} | Valid: {val_result['summary']['valid']} | Invalid: {val_result['summary']['invalid']}")
+                        st.toast("🎉 Excel uploaded & validated successfully!", icon="✅")
+                        st.success(f"Total: {val_result['summary']['total']} | Valid: {val_result['summary']['valid']} | Invalid: {val_result['summary']['invalid']}")
                         
                         if st.button("Import Candidates to Database", key="btn_import_valid"):
                             ins, upd = upsert_candidates_bulk(val_result["valid_candidates"])
-                            st.success(f"Successfully processed candidates. New inserted: {ins}, Updated: {upd}")
+                            st.toast(f"Imported {ins} new, updated {upd} candidates!", icon="✅")
                             st.rerun()
                     else:
                         st.error("Excel Validation Errors Found:")
@@ -93,9 +93,8 @@ def render_candidates_page():
     f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns(5)
 
     with f_col1:
-        search_query = st.text_input("Search (ID, Name, Email, Position)", value="", key="search_query")
+        search_query = st.text_input("🔍 Search (ID, Name, Email, Position)", value="", key="search_query")
 
-    # Dynamic unique values for dropdowns
     departments = ["All"] + sorted(list(set([c.get("department") for c in all_candidates if c.get("department")])))
     positions = ["All"] + sorted(list(set([c.get("position") for c in all_candidates if c.get("position")])))
     offer_statuses = ["All", "Selected", "Pending", "Generated", "Rejected"]
@@ -125,72 +124,112 @@ def render_candidates_page():
     if "selected_candidate_ids" not in st.session_state:
         st.session_state.selected_candidate_ids = set()
 
-    # Selection Action Buttons
-    sel_col1, sel_col2, sel_col3, sel_col4 = st.columns([1.5, 1.5, 2, 3])
-    with sel_col1:
+    # View Mode Toggle: Table View (☷) vs Candidate Card View (▦)
+    v_col1, v_col2, v_col3 = st.columns([2, 2, 2])
+    with v_col1:
+        view_mode = st.radio("Display View Mode", ["☷ Table View", "▦ Candidate Card View"], horizontal=True, key="cand_view_mode")
+
+    with v_col2:
         if st.button("Select All Filtered", key="btn_sel_all"):
             for c in filtered_cands:
                 st.session_state.selected_candidate_ids.add(c["candidate_id"])
             st.rerun()
 
-    with sel_col2:
+    with v_col3:
         if st.button("Deselect All", key="btn_desel_all"):
             st.session_state.selected_candidate_ids.clear()
             st.rerun()
 
-    with sel_col3:
-        num_selected = len(st.session_state.selected_candidate_ids)
-        st.markdown(f"Selected: **{num_selected} candidates**")
+    st.markdown(f"Selected: **{len(st.session_state.selected_candidate_ids)} candidates**")
 
-    # Candidate Data Table with Selection Checkboxes
-    st.markdown("### Candidate Directory")
+    # 1. CANDIDATE CARD VIEW (▦)
+    if view_mode == "▦ Candidate Card View":
+        st.markdown("### Candidate Cards Directory")
+        
+        card_cols = st.columns(3)
+        for idx, cand in enumerate(filtered_cands):
+            c_id = cand["candidate_id"]
+            name = cand["name"]
+            email = cand["email"]
+            pos = cand["position"]
+            dept = cand["department"]
+            comp = cand["company"]
+            offer_st = cand["offer_status"]
+            is_sel = c_id in st.session_state.selected_candidate_ids
 
-    # Display Data Table with interactive checkboxes
-    table_data = []
-    for c in filtered_cands:
-        is_sel = c["candidate_id"] in st.session_state.selected_candidate_ids
-        table_data.append({
-            "Select": is_sel,
-            "Candidate ID": c["candidate_id"],
-            "Name": c["name"],
-            "Email": c["email"],
-            "Phone": c["phone"],
-            "Position": c["position"],
-            "Department": c["department"],
-            "Company": c["company"],
-            "Joining Date": c["joining_date"],
-            "Salary": f"${float(c['salary']):,.2f}",
-            "Offer Status": c["offer_status"],
-            "Cert Status": c["certificate_status"]
-        })
+            badge_class = "badge-success" if offer_st == "Selected" else ("badge-warning" if offer_st == "Pending" else "badge-failed")
 
-    df_display = pd.DataFrame(table_data)
+            with card_cols[idx % 3]:
+                st.markdown(f"""
+                <div class="saas-card" style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">👤 {name}</h4>
+                            <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">ID: {c_id}</span>
+                        </div>
+                        <span class="badge {badge_class}">{offer_st}</span>
+                    </div>
+                    <div style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);">
+                        <div><strong>Role:</strong> {pos}</div>
+                        <div><strong>Dept:</strong> {dept} ({comp})</div>
+                        <div style="margin-top: 4px; overflow: hidden; text-overflow: ellipsis;">✉️ {email}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Checkbox inside Card
+                sel_toggle = st.checkbox(f"Select {c_id}", value=is_sel, key=f"card_chk_{c_id}")
+                if sel_toggle != is_sel:
+                    if sel_toggle:
+                        st.session_state.selected_candidate_ids.add(c_id)
+                    else:
+                        st.session_state.selected_candidate_ids.discard(c_id)
+                    st.rerun()
 
-    # Interactive Data Editor with checkbox toggle
-    edited_df = st.data_editor(
-        df_display,
-        column_config={
-            "Select": st.column_config.CheckboxColumn("Select", default=False),
-            "Salary": st.column_config.TextColumn("Salary"),
-        },
-        disabled=["Candidate ID", "Name", "Email", "Phone", "Position", "Department", "Company", "Joining Date", "Salary", "Offer Status", "Cert Status"],
-        hide_index=True,
-        key="cand_table_editor"
-    )
+    # 2. TABLE VIEW (☷)
+    else:
+        table_data = []
+        for c in filtered_cands:
+            is_sel = c["candidate_id"] in st.session_state.selected_candidate_ids
+            table_data.append({
+                "Select": is_sel,
+                "Candidate ID": c["candidate_id"],
+                "Name": c["name"],
+                "Email": c["email"],
+                "Phone": c["phone"],
+                "Position": c["position"],
+                "Department": c["department"],
+                "Company": c["company"],
+                "Joining Date": c["joining_date"],
+                "Salary": f"${float(c['salary']):,.2f}",
+                "Offer Status": c["offer_status"],
+                "Cert Status": c["certificate_status"]
+            })
 
-    # Update selection set based on user toggle in data editor
-    new_selected = set()
-    for idx, row in edited_df.iterrows():
-        if row["Select"]:
-            new_selected.add(row["Candidate ID"])
+        df_display = pd.DataFrame(table_data)
 
-    # Update session state if modified
-    current_ids_in_view = set([c["candidate_id"] for c in filtered_cands])
-    st.session_state.selected_candidate_ids = (st.session_state.selected_candidate_ids - current_ids_in_view) | new_selected
+        edited_df = st.data_editor(
+            df_display,
+            column_config={
+                "Select": st.column_config.CheckboxColumn("Select", default=False),
+                "Salary": st.column_config.TextColumn("Salary"),
+            },
+            disabled=["Candidate ID", "Name", "Email", "Phone", "Position", "Department", "Company", "Joining Date", "Salary", "Offer Status", "Cert Status"],
+            hide_index=True,
+            key="cand_table_editor"
+        )
+
+        new_selected = set()
+        for idx, row in edited_df.iterrows():
+            if row["Select"]:
+                new_selected.add(row["Candidate ID"])
+
+        current_ids_in_view = set([c["candidate_id"] for c in filtered_cands])
+        st.session_state.selected_candidate_ids = (st.session_state.selected_candidate_ids - current_ids_in_view) | new_selected
 
     st.markdown("---")
 
-    # Add & Edit Single Candidate Section
+    # Add / Edit / Delete Section
     with st.expander("Add / Edit / Delete Candidate Record", expanded=False):
         tab_add, tab_edit, tab_del = st.tabs(["Add New Candidate", "Edit Candidate", "Delete Candidate"])
 
@@ -229,7 +268,7 @@ def render_candidates_page():
                                 "Offer_Status": "Selected",
                                 "Certificate_Status": "Pending"
                             })
-                            st.success(f"Candidate '{new_name}' ({new_cid}) added successfully.")
+                            st.toast(f"Candidate '{new_name}' added successfully!", icon="✅")
                             st.rerun()
                         except Exception as e:
                             st.error(f"Failed to add candidate: {str(e)}")
@@ -270,7 +309,7 @@ def render_candidates_page():
                             "salary": e_sal,
                             "offer_status": e_offer
                         })
-                        st.success(f"Candidate {selected_edit_cid} updated successfully.")
+                        st.toast(f"Candidate {selected_edit_cid} updated successfully.", icon="✅")
                         st.rerun()
 
         with tab_del:
@@ -281,5 +320,5 @@ def render_candidates_page():
             )
             if st.button("Delete Candidate", key="btn_del_candidate"):
                 delete_candidate(selected_del_cid)
-                st.success(f"Candidate {selected_del_cid} deleted.")
+                st.toast(f"Candidate {selected_del_cid} deleted.", icon="🗑️")
                 st.rerun()
