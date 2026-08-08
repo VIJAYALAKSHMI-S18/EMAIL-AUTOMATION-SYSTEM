@@ -8,7 +8,7 @@ from database.database import (
 )
 
 def render_dashboard_page():
-    st.markdown("## 🏠 Recruitment Executive Dashboard")
+    st.markdown("## Executive Dashboard")
     st.markdown("Overview of candidate pipeline, generated documents, and email campaign analytics.")
 
     candidates = get_all_candidates()
@@ -16,11 +16,11 @@ def render_dashboard_page():
     email_logs = get_all_email_logs()
     email_mode = get_setting("email_mode", "Demo Mode")
 
-    # Mode Badge Notice
+    # Mode Notice
     if email_mode == "Demo Mode":
-        st.info("ℹ️ **System Mode: Demo Mode** (Emails are simulated and logged to SQLite without sending real SMTP emails). You can switch to Gmail SMTP in Settings.")
+        st.info("System Mode: Demo Mode (Emails are simulated and logged to SQLite without sending real SMTP emails). You can switch to Gmail SMTP in Settings.")
     else:
-        st.success("🟢 **System Mode: Gmail SMTP** (Live emails will be sent via Gmail SMTP).")
+        st.success("System Mode: Gmail SMTP (Live emails will be sent via Gmail SMTP).")
 
     # Key Metric Calculations
     total_candidates = len(candidates)
@@ -50,7 +50,7 @@ def render_dashboard_page():
     st.markdown("---")
 
     # Quick Summary & Action Banner
-    st.markdown("### 📊 Live Recruitment Metrics")
+    st.markdown("### Live Recruitment Metrics")
 
     # Row 1: Charts
     chart_col1, chart_col2 = st.columns(2)

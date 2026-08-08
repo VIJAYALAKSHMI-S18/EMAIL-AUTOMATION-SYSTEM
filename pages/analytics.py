@@ -8,7 +8,7 @@ from database.database import (
 )
 
 def render_analytics_page():
-    st.markdown("## 📊 Recruitment Analytics & Insights")
+    st.markdown("## Recruitment Analytics & Insights")
     st.markdown("In-depth statistical reporting on candidate acquisition, departmental hiring, and email communication metrics.")
 
     candidates = get_all_candidates()
@@ -20,7 +20,7 @@ def render_analytics_page():
         return
 
     # Filter Bar
-    st.markdown("### 🛠 Filter Visualizations")
+    st.markdown("### Filter Visualizations")
     af_col1, af_col2 = st.columns(2)
 
     companies = ["All"] + sorted(list(set([c.get("company") for c in candidates if c.get("company")])))
@@ -40,7 +40,7 @@ def render_analytics_page():
     st.markdown("---")
 
     # Metrics Summary Row
-    st.markdown("### 📈 Pipeline Summary")
+    st.markdown("### Pipeline Summary")
     m1, m2, m3, m4 = st.columns(4)
     with m1:
         st.metric("Total Candidates", len(filtered_cands))

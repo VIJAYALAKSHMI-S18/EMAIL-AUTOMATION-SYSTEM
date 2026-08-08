@@ -9,7 +9,7 @@ from modules.email_templates import get_email_preview
 from modules.email_sender import process_email_dispatch
 
 def render_email_automation_page():
-    st.markdown("## 📧 Email Campaign Automation")
+    st.markdown("## Email Campaign Automation")
     st.markdown("Compose personalized recruitment emails, preview rendered content, attach documents, and launch bulk campaigns.")
 
     all_candidates = get_all_candidates()
@@ -25,9 +25,9 @@ def render_email_automation_page():
     # Email Mode Notice
     email_mode = get_setting("email_mode", "Demo Mode")
     if email_mode == "Demo Mode":
-        st.info("ℹ️ **Active Mode: Demo Mode** (Emails will be simulated and logged into SQLite. No actual SMTP connection will be opened). You can switch to Gmail SMTP in Settings.")
+        st.info("Active Mode: Demo Mode (Emails will be simulated and logged into SQLite. No actual SMTP connection will be opened). You can switch to Gmail SMTP in Settings.")
     else:
-        st.warning("⚠️ **Active Mode: Gmail SMTP** (Live emails will be dispatched to candidate email addresses via Gmail SMTP).")
+        st.warning("Active Mode: Gmail SMTP (Live emails will be dispatched to candidate email addresses via Gmail SMTP).")
 
     # Step 1: Candidate Selection Summary
     st.markdown("### 1. Select Campaign Recipients")
@@ -60,7 +60,7 @@ def render_email_automation_page():
     body_input = st.text_area("Email Body Content", value=active_template["body"], height=200, key="em_body_input")
 
     # Placeholder Reference Guide
-    with st.expander("💡 Available Personalization Placeholders", expanded=False):
+    with st.expander("Available Personalization Placeholders", expanded=False):
         st.markdown("""
         Use the following dynamic placeholders in your subject line and email body. They will be automatically replaced per candidate:
         - `{Name}` : Candidate's Full Name (e.g. Vijay Kumar)
@@ -75,9 +75,9 @@ def render_email_automation_page():
         """)
 
     # Option to save modified template
-    if st.button("💾 Save Template Changes", key="btn_save_template"):
+    if st.button("Save Template Changes", key="btn_save_template"):
         save_email_template(selected_t_name, subject_input, body_input)
-        st.success(f"Template '{selected_t_name}' updated successfully!")
+        st.success(f"Template '{selected_t_name}' updated successfully.")
 
     st.markdown("---")
 
@@ -114,7 +114,7 @@ def render_email_automation_page():
             <hr style="border: 0.5px solid #E2E8F0;" />
             <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; color: #1E293B;">{preview_data['body']}</pre>
             <hr style="border: 0.5px solid #E2E8F0;" />
-            <p><strong>Attachments:</strong> {', '.join([f'📎 {a}' for a in preview_data['attachments']]) if preview_data['attachments'] else 'None'}</p>
+            <p><strong>Attachments:</strong> {', '.join([f'{a}' for a in preview_data['attachments']]) if preview_data['attachments'] else 'None'}</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -127,11 +127,11 @@ def render_email_automation_page():
         st.error("Please select target candidates before launching campaign.")
         return
 
-    st.warning(f"⚠️ **Confirmation**: You are about to send personalized emails to **{len(selected_candidates)} candidates**.")
+    st.warning(f"Confirmation: You are about to send personalized emails to **{len(selected_candidates)} candidates**.")
 
     confirm_check = st.checkbox(f"I confirm that I want to send emails to {len(selected_candidates)} candidates in {email_mode}.", key="chk_confirm_send")
 
-    if st.button("🚀 Send Campaign Emails Now", type="primary", disabled=not confirm_check, key="btn_send_campaign"):
+    if st.button("Send Campaign Emails Now", type="primary", disabled=not confirm_check, key="btn_send_campaign"):
         progress_bar = st.progress(0)
         status_box = st.empty()
 
@@ -154,8 +154,8 @@ def render_email_automation_page():
         failures = [r for r in results if r["status"] == "FAILED"]
 
         if successes:
-            st.success(f"✅ Successfully dispatched/logged {len(successes)} email(s)!")
+            st.success(f"Successfully dispatched/logged {len(successes)} email(s).")
         if failures:
-            st.error(f"❌ Failed to dispatch {len(failures)} email(s). Check Email Logs for failure details.")
+            st.error(f"Failed to dispatch {len(failures)} email(s). Check Email Logs for failure details.")
 
         st.rerun()

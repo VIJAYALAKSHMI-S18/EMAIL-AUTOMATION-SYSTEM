@@ -15,14 +15,14 @@ from modules.excel_handler import (
 from modules.candidate_manager import filter_candidates, seed_sample_candidates_if_empty
 
 def render_candidates_page():
-    st.markdown("## 👥 Candidate Management")
+    st.markdown("## Candidate Management")
     st.markdown("Manage candidate records, import/export via Excel, search, filter, and select candidates for automation.")
 
     # Ensure sample candidates exist in DB if empty
     seed_sample_candidates_if_empty()
 
     # Expandable Excel Section: Upload & Download
-    with st.expander("📥 📤 Excel Management (Upload / Download Template / Export)", expanded=False):
+    with st.expander("Excel Management (Upload / Download Template / Export)", expanded=False):
         ex_col1, ex_col2, ex_col3 = st.columns(3)
 
         with ex_col1:
@@ -30,7 +30,7 @@ def render_candidates_page():
             st.markdown("Get pre-formatted `.xlsx` template with sample records.")
             sample_bytes = get_sample_excel_bytes()
             st.download_button(
-                label="📥 Download Sample Excel Template",
+                label="Download Sample Excel Template",
                 data=sample_bytes,
                 file_name="sample_candidates.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -46,25 +46,25 @@ def render_candidates_page():
                     val_result = validate_excel_dataframe(df_upload)
 
                     if val_result["is_valid"]:
-                        st.success(f"✅ Excel uploaded & validated successfully!")
+                        st.success("Excel uploaded and validated successfully.")
                         st.info(f"Total: {val_result['summary']['total']} | Valid: {val_result['summary']['valid']} | Invalid: {val_result['summary']['invalid']}")
                         
-                        if st.button("📥 Import Candidates to Database", key="btn_import_valid"):
+                        if st.button("Import Candidates to Database", key="btn_import_valid"):
                             ins, upd = upsert_candidates_bulk(val_result["valid_candidates"])
-                            st.success(f"Successfully processed candidates! New inserted: {ins}, Updated: {upd}")
+                            st.success(f"Successfully processed candidates. New inserted: {ins}, Updated: {upd}")
                             st.rerun()
                     else:
-                        st.error("❌ Excel Validation Errors Found:")
+                        st.error("Excel Validation Errors Found:")
                         for err in val_result["errors"]:
                             st.write(f"- {err}")
                         if val_result["valid_candidates"]:
                             st.warning(f"Found {len(val_result['valid_candidates'])} valid candidates despite errors.")
                             if st.button("Import Only Valid Candidates", key="btn_import_partial"):
                                 ins, upd = upsert_candidates_bulk(val_result["valid_candidates"])
-                                st.success(f"Partial import completed! Inserted: {ins}, Updated: {upd}")
+                                st.success(f"Partial import completed. Inserted: {ins}, Updated: {upd}")
                                 st.rerun()
                 except Exception as e:
-                    st.error(f"❌ Failed to parse Excel file: {str(e)}")
+                    st.error(f"Failed to parse Excel file: {str(e)}")
 
         with ex_col3:
             st.markdown("#### 3. Export Candidates")
@@ -72,7 +72,7 @@ def render_candidates_page():
             current_cands = get_all_candidates()
             export_bytes = export_candidates_to_excel(current_cands)
             st.download_button(
-                label="📤 Export Candidates to Excel",
+                label="Export Candidates to Excel",
                 data=export_bytes,
                 file_name="recruitment_candidates.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -89,7 +89,7 @@ def render_candidates_page():
         return
 
     # Search & Filter Controls
-    st.markdown("### 🔍 Search & Filter Candidates")
+    st.markdown("### Search & Filter Candidates")
     f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns(5)
 
     with f_col1:
@@ -128,13 +128,13 @@ def render_candidates_page():
     # Selection Action Buttons
     sel_col1, sel_col2, sel_col3, sel_col4 = st.columns([1.5, 1.5, 2, 3])
     with sel_col1:
-        if st.button("☑️ Select All Filtered", key="btn_sel_all"):
+        if st.button("Select All Filtered", key="btn_sel_all"):
             for c in filtered_cands:
                 st.session_state.selected_candidate_ids.add(c["candidate_id"])
             st.rerun()
 
     with sel_col2:
-        if st.button("⏹️ Deselect All", key="btn_desel_all"):
+        if st.button("Deselect All", key="btn_desel_all"):
             st.session_state.selected_candidate_ids.clear()
             st.rerun()
 
@@ -143,7 +143,7 @@ def render_candidates_page():
         st.markdown(f"Selected: **{num_selected} candidates**")
 
     # Candidate Data Table with Selection Checkboxes
-    st.markdown("### 📋 Candidate Directory")
+    st.markdown("### Candidate Directory")
 
     # Display Data Table with interactive checkboxes
     table_data = []
@@ -186,13 +186,12 @@ def render_candidates_page():
 
     # Update session state if modified
     current_ids_in_view = set([c["candidate_id"] for c in filtered_cands])
-    # Keep selections for candidates outside current view filter
     st.session_state.selected_candidate_ids = (st.session_state.selected_candidate_ids - current_ids_in_view) | new_selected
 
     st.markdown("---")
 
     # Add & Edit Single Candidate Section
-    with st.expander("➕ / ✏️ Add / Edit Single Candidate Record", expanded=False):
+    with st.expander("Add / Edit / Delete Candidate Record", expanded=False):
         tab_add, tab_edit, tab_del = st.tabs(["Add New Candidate", "Edit Candidate", "Delete Candidate"])
 
         with tab_add:
@@ -230,7 +229,7 @@ def render_candidates_page():
                                 "Offer_Status": "Selected",
                                 "Certificate_Status": "Pending"
                             })
-                            st.success(f"Candidate '{new_name}' ({new_cid}) added successfully!")
+                            st.success(f"Candidate '{new_name}' ({new_cid}) added successfully.")
                             st.rerun()
                         except Exception as e:
                             st.error(f"Failed to add candidate: {str(e)}")
@@ -271,7 +270,7 @@ def render_candidates_page():
                             "salary": e_sal,
                             "offer_status": e_offer
                         })
-                        st.success(f"Candidate {selected_edit_cid} updated successfully!")
+                        st.success(f"Candidate {selected_edit_cid} updated successfully.")
                         st.rerun()
 
         with tab_del:
@@ -280,7 +279,7 @@ def render_candidates_page():
                 options=[c["candidate_id"] for c in all_candidates],
                 key="select_del_cid"
             )
-            if st.button("❌ Delete Candidate", key="btn_del_candidate"):
+            if st.button("Delete Candidate", key="btn_del_candidate"):
                 delete_candidate(selected_del_cid)
                 st.success(f"Candidate {selected_del_cid} deleted.")
                 st.rerun()

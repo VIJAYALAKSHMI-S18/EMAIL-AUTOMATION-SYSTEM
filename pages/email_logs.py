@@ -4,7 +4,7 @@ from database.database import get_all_email_logs
 from modules.email_sender import retry_single_email_log
 
 def render_email_logs_page():
-    st.markdown("## 📜 Email Audit Logs")
+    st.markdown("## Email Audit Logs")
     st.markdown("Historical records of all email dispatch events, tracking success status, attachments, error stack traces, and resend attempts.")
 
     logs = get_all_email_logs()
@@ -60,15 +60,7 @@ def render_email_logs_page():
         attachment = log_item.get("attachment", "None")
 
         with st.container():
-            lc_icon, lc_info, lc_status, lc_action = st.columns([1, 4, 2, 2])
-
-            with lc_icon:
-                if status == "SUCCESS":
-                    st.markdown("✅")
-                elif status == "FAILED":
-                    st.markdown("❌")
-                else:
-                    st.markdown("⏳")
+            lc_info, lc_status, lc_action = st.columns([5, 3, 2])
 
             with lc_info:
                 st.markdown(f"**{c_name}** (`{c_id}`) &lt;`{email}`&gt;")
@@ -87,10 +79,10 @@ def render_email_logs_page():
 
             with lc_action:
                 if status == "FAILED":
-                    if st.button(f"🔄 Retry Send", key=f"retry_btn_{log_id}"):
+                    if st.button("Retry Send", key=f"retry_btn_{log_id}"):
                         success, msg = retry_single_email_log(log_id)
                         if success:
-                            st.success(f"Retry successful! {msg}")
+                            st.success(f"Retry successful. {msg}")
                         else:
                             st.error(f"Retry failed: {msg}")
                         st.rerun()

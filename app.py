@@ -5,8 +5,7 @@ from modules.candidate_manager import seed_sample_candidates_if_empty
 
 # Page Configuration
 st.set_page_config(
-    page_title="RecruitFlow – Recruitment Email Automation System",
-    page_icon="🚀",
+    page_title="RecruitFlow - Recruitment Email Automation System",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -96,13 +95,13 @@ st.sidebar.markdown("""
 page_choice = st.sidebar.radio(
     "Navigation Menu",
     [
-        "🏠 Dashboard",
-        "👥 Candidates",
-        "📊 Analytics",
-        "📄 Documents",
-        "📧 Email Automation",
-        "📜 Email Logs",
-        "⚙️ Settings"
+        "Dashboard",
+        "Candidates",
+        "Analytics",
+        "Documents",
+        "Email Automation",
+        "Email Logs",
+        "Settings"
     ],
     index=0
 )
@@ -116,30 +115,30 @@ Built with Streamlit & Python
 """)
 
 # Page Routing Engine
-if page_choice == "🏠 Dashboard":
+if page_choice == "Dashboard":
     from pages.dashboard import render_dashboard_page
     render_dashboard_page()
 
-elif page_choice == "👥 Candidates":
+elif page_choice == "Candidates":
     from pages.candidates import render_candidates_page
     render_candidates_page()
 
-elif page_choice == "📊 Analytics":
+elif page_choice == "Analytics":
     from pages.analytics import render_analytics_page
     render_analytics_page()
 
-elif page_choice == "📄 Documents":
+elif page_choice == "Documents":
     from pages.documents import render_documents_page
     render_documents_page()
 
-elif page_choice == "📧 Email Automation":
+elif page_choice == "Email Automation":
     from pages.email_automation import render_email_automation_page
     render_email_automation_page()
 
-elif page_choice == "📜 Email Logs":
+elif page_choice == "Email Logs":
     from pages.email_logs import render_email_logs_page
     render_email_logs_page()
 
-elif page_choice == "⚙️ Settings":
+elif page_choice == "Settings":
     from pages.settings import render_settings_page
     render_settings_page()

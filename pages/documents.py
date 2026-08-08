@@ -8,7 +8,7 @@ from database.database import (
 from modules.document_generator import generate_offer_letter, generate_certificate
 
 def render_documents_page():
-    st.markdown("## 📄 Document Generation")
+    st.markdown("## Document Generation")
     st.markdown("Generate personalized `.docx` Offer Letters and Certificates for selected candidates.")
 
     all_candidates = get_all_candidates()
@@ -50,7 +50,7 @@ def render_documents_page():
 
     with g_col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🚀 Generate Documents Now", type="primary", key="btn_gen_docs"):
+        if st.button("Generate Documents Now", type="primary", key="btn_gen_docs"):
             if not selected_candidates:
                 st.error("Please select at least one candidate first.")
             else:
@@ -79,13 +79,13 @@ def render_documents_page():
                     progress_bar.progress((idx + 1) / total)
 
                 status_text.text("Generation complete!")
-                st.success(f"✅ Generated documents for {success_count} candidate(s) successfully!")
+                st.success(f"Generated documents for {success_count} candidate(s) successfully.")
                 st.rerun()
 
     st.markdown("---")
 
     # Generated Documents Directory Table
-    st.markdown("### 📜 Generated Document Archives")
+    st.markdown("### Generated Document Archives")
     all_docs = get_all_documents()
 
     if not all_docs:
@@ -120,23 +120,20 @@ def render_documents_page():
         status = doc_item["status"]
 
         with st.container():
-            col_icon, col_info, col_status, col_dl = st.columns([1, 4, 2, 2])
-            
-            with col_icon:
-                st.markdown("📄" if doc_type == "Offer Letter" else "🏆")
+            col_info, col_status, col_dl = st.columns([5, 3, 2])
 
             with col_info:
-                st.markdown(f"**{doc_type}** for **{c_name}** (`{c_id}`)")
+                st.markdown(f"**{doc_type}** | **{c_name}** (`{c_id}`)")
                 st.caption(f"Filename: `{f_name}` | Generated: {gen_at}")
 
             with col_status:
-                st.markdown(f"Status: ✅ **{status}**")
+                st.markdown(f"Status: **{status}**")
 
             with col_dl:
                 if f_path.exists():
                     with open(f_path, "rb") as f:
                         st.download_button(
-                            label=f"📥 Download .docx",
+                            label="Download .docx",
                             data=f.read(),
                             file_name=f_name,
                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",

@@ -1,4 +1,4 @@
-# 🚀 RecruitFlow – Recruitment Email Automation System
+# RecruitFlow - Recruitment Email Automation System
 
 > **Automate. Personalize. Communicate.**
 
@@ -8,7 +8,7 @@ It eliminates repetitive HR tasks such as candidate data management, manual Word
 
 ---
 
-## 📌 Problem Statement
+## Problem Statement
 
 In traditional recruitment workflows, HR teams manually handle candidate data across fragmented tools:
 - Maintaining candidate information in Microsoft Excel.
@@ -17,11 +17,11 @@ In traditional recruitment workflows, HR teams manually handle candidate data ac
 - Attaching individual candidate files manually.
 - Manually tracking sent/failed emails in spreadsheets.
 
-When candidate volume increases, this process becomes **time-consuming, error-prone, repetitive, inconsistent, and administratively expensive**.
+When candidate volume increases, this process becomes time-consuming, error-prone, repetitive, inconsistent, and administratively expensive.
 
 ---
 
-## 🎯 Objectives
+## System Objectives
 
 RecruitFlow unifies the entire recruitment communication lifecycle into one centralized web application:
 1. **Manage Candidate Data**: Upload/Download Excel spreadsheets with automated validation.
@@ -35,7 +35,7 @@ RecruitFlow unifies the entire recruitment communication lifecycle into one cent
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Component | Technology |
 | :--- | :--- |
@@ -50,7 +50,7 @@ RecruitFlow unifies the entire recruitment communication lifecycle into one cent
 
 ---
 
-## 🏗️ System Architecture & Workflow
+## System Architecture & Workflow
 
 ```text
                     RECRUITFLOW
@@ -101,7 +101,7 @@ RecruitFlow unifies the entire recruitment communication lifecycle into one cent
 
 ---
 
-## 📂 Project Directory Structure
+## Project Directory Structure
 
 ```text
 recruitment-email-automation/
@@ -144,7 +144,7 @@ recruitment-email-automation/
 
 ---
 
-## ⚡ Quick Start & Installation Guide
+## Quick Start & Installation Guide
 
 ### 1. Prerequisites
 Ensure Python 3.10+ is installed on your computer.
@@ -168,7 +168,7 @@ The application will open automatically in your browser at `http://localhost:850
 
 ---
 
-## 🔑 Gmail SMTP Setup (App Password)
+## Gmail SMTP Setup (App Password)
 
 To send live emails via **Gmail SMTP**, Google requires a 16-character **App Password**:
 
@@ -187,33 +187,14 @@ EMAIL_PASSWORD=abcdefghijklmnop
 
 ---
 
-## 💡 Demo Mode (For Project Presentations & Testing)
+## Demo Mode (For Project Presentations & Testing)
 
-RecruitFlow features an built-in **Demo Mode** enabled by default:
+RecruitFlow features a built-in **Demo Mode** enabled by default:
 - **No SMTP Credentials Required**: Runs 100% locally without external email server connections.
 - **Full Automation Simulation**: Generates actual `.docx` files, renders dynamic emails with live previews, simulates batch dispatch progress, records success entries in `email_logs`, and updates analytical charts in real time.
 - **Ideal for College / Client Demonstrations**: Demonstrators can showcase the entire system without exposing email credentials or sending real emails to dummy addresses.
 
 ---
 
-## 🧪 Comprehensive Verification Checklist
-
-You can verify all end-to-end features using this sequence:
-1. Start app via `streamlit run app.py`.
-2. Open **Dashboard** to view high-level metric cards and charts.
-3. Download **Sample Excel Template** (`sample_candidates.xlsx`) from **Candidates** page.
-4. Upload `sample_candidates.xlsx` using the Excel Uploader & verify validation output.
-5. Filter candidate table by Department / Position / Offer Status.
-6. Select target candidates using checkboxes.
-7. Navigate to **Documents** and click **Generate Documents Now** to create `.docx` Offer Letters and Certificates.
-8. Download generated `.docx` files directly from the archives list.
-9. Navigate to **Email Automation**, choose a template (e.g. *Offer Letter*), inspect live preview and attachments.
-10. Click **Send Campaign Emails Now** (in Demo Mode) and watch the live progress bar.
-11. Navigate to **Email Logs** to inspect logged SUCCESS status entries.
-12. Navigate to **Analytics** to view updated Matplotlib graphs.
-13. Click **Export Candidates to Excel** to save updated database records into `.xlsx`.
-
----
-
-## 📄 License
+## License
 This project is released under the **MIT License**.

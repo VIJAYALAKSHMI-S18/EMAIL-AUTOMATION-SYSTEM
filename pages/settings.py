@@ -3,7 +3,7 @@ import os
 from database.database import get_setting, set_setting
 
 def render_settings_page():
-    st.markdown("## ⚙️ System Settings & Configuration")
+    st.markdown("## System Settings & Configuration")
     st.markdown("Configure email transmission modes, Gmail SMTP credentials, sender profiles, and corporate metadata.")
 
     # 1. Email Transmission Mode Setting
@@ -19,7 +19,7 @@ def render_settings_page():
 
     if new_mode != current_mode:
         set_setting("email_mode", new_mode)
-        st.success(f"Email Dispatch Mode updated to **{new_mode}**!")
+        st.success(f"Email Dispatch Mode updated to **{new_mode}**.")
         st.rerun()
 
     st.markdown("---")
@@ -32,7 +32,7 @@ def render_settings_page():
     st.text_input("Sender Email Address", value=env_email, disabled=True, key="dis_email_addr")
     st.text_input("Gmail App Password Status", value="••••••••••••••••" if has_pass else "Not Configured", disabled=True, key="dis_email_pass")
 
-    with st.expander("🔑 How to Set Up Gmail App Password (Step-by-Step Guide)", expanded=False):
+    with st.expander("How to Set Up Gmail App Password (Step-by-Step Guide)", expanded=False):
         st.markdown("""
         To send actual live emails through Gmail SMTP, Google requires an **App Password** (not your regular Gmail login password).
 
@@ -48,7 +48,7 @@ def render_settings_page():
         EMAIL_ADDRESS=your_email@gmail.com
         EMAIL_PASSWORD=abcdefghijklmnop
         ```
-        > 🔒 **Security Notice**: Never commit your 16-character App Password to public GitHub repositories!
+        > **Security Notice**: Never commit your 16-character App Password to public GitHub repositories.
         """)
 
     st.markdown("---")
@@ -74,5 +74,5 @@ def render_settings_page():
             set_setting("hr_name", f_hr_name)
             set_setting("hr_email", f_hr_email)
             set_setting("company_address", f_comp_addr)
-            st.success("Corporate metadata updated successfully!")
+            st.success("Corporate metadata updated successfully.")
             st.rerun()
