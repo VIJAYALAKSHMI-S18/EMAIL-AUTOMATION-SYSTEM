@@ -3,7 +3,7 @@ import os
 from database.database import init_db
 from modules.candidate_manager import seed_sample_candidates_if_empty
 from utils.auth import is_authenticated, logout_user, get_current_user
-from utils.theme import get_current_theme, toggle_theme, get_theme_css
+from utils.theme import get_current_theme, toggle_theme, inject_custom_theme
 
 # Page Configuration
 st.set_page_config(
@@ -17,10 +17,9 @@ st.set_page_config(
 init_db()
 seed_sample_candidates_if_empty()
 
-# 2. Inject Dynamic Theme CSS & Custom Cursor
+# 2. Inject Executive Custom Theme CSS
 active_theme = get_current_theme()
-theme_css = get_theme_css(active_theme)
-st.markdown(theme_css, unsafe_allow_html=True)
+inject_custom_theme(active_theme)
 
 # 3. Authentication Check
 if not is_authenticated():
@@ -32,12 +31,10 @@ else:
 
     # Sidebar Header & Theme Toggle Switcher
     st.sidebar.markdown(f"""
-    <div class="sidebar-brand">
-        <div class="brand-title">RecruitFlow</div>
-        <div class="brand-tagline">Enterprise HR Portal</div>
-        <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary); font-weight: 600;">
-            👤 {user_info['name']}
-        </div>
+    <div style="text-align: center; padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #3B82F6;">RecruitFlow</h2>
+        <p style="margin: 2px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7;">Enterprise HR Portal</p>
+        <p style="margin: 6px 0 0 0; font-size: 12px; font-weight: 600;">👤 {user_info['name']}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -74,11 +71,10 @@ else:
     # Logout Button
     if st.sidebar.button("🚪 Logout", key="sidebar_logout_btn", use_container_width=True):
         logout_user()
-        st.toast("Signed out successfully.", icon="👋")
         st.rerun()
 
     st.sidebar.markdown("""
-    <div style="text-align: center; font-size: 11px; color: var(--text-secondary); margin-top: 20px;">
+    <div style="text-align: center; font-size: 11px; opacity: 0.6; margin-top: 20px;">
         RecruitFlow Enterprise v2.5<br/>SaaS Edition
     </div>
     """, unsafe_allow_html=True)
