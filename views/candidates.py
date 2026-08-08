@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 import pandas as pd
 from database.database import (
@@ -81,7 +87,6 @@ def render_candidates_page():
 
     st.markdown("---")
 
-    # Fetch fresh candidate list from database
     all_candidates = get_all_candidates()
 
     if not all_candidates:
@@ -120,7 +125,6 @@ def render_candidates_page():
 
     st.markdown(f"**Showing {len(filtered_cands)} of {len(all_candidates)} Candidates**")
 
-    # Selection State Management
     if "selected_candidate_ids" not in st.session_state:
         st.session_state.selected_candidate_ids = set()
 
@@ -161,15 +165,15 @@ def render_candidates_page():
 
             with card_cols[idx % 3]:
                 st.markdown(f"""
-                <div class="saas-card" style="margin-bottom: 16px;">
+                <div class="exec-card">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">👤 {name}</h4>
-                            <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">ID: {c_id}</span>
+                            <h4 style="margin: 0; font-size: 16px; font-weight: 700;">👤 {name}</h4>
+                            <span style="font-size: 11px; font-weight: 600; opacity: 0.7;">ID: {c_id}</span>
                         </div>
                         <span class="badge {badge_class}">{offer_st}</span>
                     </div>
-                    <div style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);">
+                    <div style="margin-top: 12px; font-size: 13px; opacity: 0.8;">
                         <div><strong>Role:</strong> {pos}</div>
                         <div><strong>Dept:</strong> {dept} ({comp})</div>
                         <div style="margin-top: 4px; overflow: hidden; text-overflow: ellipsis;">✉️ {email}</div>
@@ -177,7 +181,6 @@ def render_candidates_page():
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Checkbox inside Card
                 sel_toggle = st.checkbox(f"Select {c_id}", value=is_sel, key=f"card_chk_{c_id}")
                 if sel_toggle != is_sel:
                     if sel_toggle:

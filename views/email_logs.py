@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 import pandas as pd
 from database.database import get_all_email_logs
@@ -36,7 +42,6 @@ def render_email_logs_page():
 
     st.markdown(f"**Displaying {len(filtered_logs)} Log Records**")
 
-    # Table view summary metrics
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1:
         st.metric("Total Logged", len(logs))
@@ -47,7 +52,6 @@ def render_email_logs_page():
 
     st.markdown("---")
 
-    # Detailed Logs List with Retry Actions
     for log_item in filtered_logs:
         log_id = log_item["id"]
         c_id = log_item["candidate_id"]

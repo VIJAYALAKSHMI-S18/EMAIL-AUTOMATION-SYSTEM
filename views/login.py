@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 from utils.auth import login_user
 

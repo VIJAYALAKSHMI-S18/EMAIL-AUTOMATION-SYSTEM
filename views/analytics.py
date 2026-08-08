@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
@@ -71,7 +77,7 @@ def render_analytics_page():
 
     st.markdown("---")
 
-    # Row 1 Plotly Charts: Candidate Status & Email Status
+    # Row 1 Plotly Charts
     c1, c2 = st.columns(2)
 
     with c1:
@@ -109,7 +115,7 @@ def render_analytics_page():
 
     st.markdown("---")
 
-    # Row 2 Plotly Charts: Department Breakdown & Salary Analysis
+    # Row 2 Plotly Charts
     c3, c4 = st.columns(2)
 
     with c3:

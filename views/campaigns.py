@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 import datetime
 import pandas as pd
@@ -20,7 +26,6 @@ def render_campaigns_page():
         st.warning("No candidate records available. Please import candidates first.")
         return
 
-    # Tabs: Campaign Dispatch & Campaign History
     tab_create, tab_history = st.tabs(["Create & Launch Campaign", "Campaign History & Stats"])
 
     with tab_create:

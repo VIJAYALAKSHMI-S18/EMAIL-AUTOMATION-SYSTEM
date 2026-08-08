@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 from database.database import (
     get_all_candidates,
@@ -107,7 +113,7 @@ def render_email_automation_page():
         preview_data = get_email_preview(subject_input, body_input, cand_for_preview, attachment_choice)
 
         st.markdown(f"""
-        <div class="saas-card">
+        <div class="exec-card">
             <div style="border-bottom: 1px solid var(--card-border); padding-bottom: 10px; margin-bottom: 12px;">
                 <span class="badge badge-info">EMAIL PREVIEW</span>
             </div>
@@ -155,7 +161,7 @@ def render_email_automation_page():
         failures = [r for r in results if r["status"] == "FAILED"]
 
         if successes:
-            st.toast(f"🎉 Dispatched {len(successes)} email(s) successfully!", icon="✅")
+            st.toast(f"Dispatched {len(successes)} email(s) successfully!", icon="✅")
             st.success(f"Successfully dispatched/logged {len(successes)} email(s).")
         if failures:
             st.error(f"Failed to dispatch {len(failures)} email(s). Check Email Logs for failure details.")

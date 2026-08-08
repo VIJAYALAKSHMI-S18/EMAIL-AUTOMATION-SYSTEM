@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 import os
 from database.database import get_setting, set_setting
@@ -9,7 +15,6 @@ def render_settings_page():
 
     user = get_current_user()
 
-    # Tabbed Settings
     tab_profile, tab_email, tab_app = st.tabs(["Profile", "Email Configuration", "Application Settings"])
 
     with tab_profile:

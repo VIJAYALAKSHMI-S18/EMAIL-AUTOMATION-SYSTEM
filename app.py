@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+
+# Ensure root workspace directory is at the top of sys.path for Streamlit Cloud compatibility
+ROOT_DIR = Path(__file__).parent.resolve()
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 import os
 from database.database import init_db
@@ -23,13 +31,13 @@ inject_custom_theme(active_theme)
 
 # 3. Authentication Check
 if not is_authenticated():
-    from pages.login import render_login_page
+    from views.login import render_login_page
     render_login_page()
 else:
     # Authenticated Main Portal Layout
     user_info = get_current_user()
 
-    # Sidebar Header & Theme Toggle Switcher
+    # Sidebar Header
     st.sidebar.markdown(f"""
     <div style="text-align: center; padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
         <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #3B82F6;">RecruitFlow</h2>
@@ -38,7 +46,7 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # Stylish Theme Switcher Toggle Button in Sidebar
+    # Theme Switcher Button in Sidebar
     t_col1, t_col2 = st.sidebar.columns([3, 1])
     with t_col1:
         st.markdown(f"**Theme**: {'🌙 Dark' if active_theme == 'dark' else '☀️ Light'}")
@@ -81,37 +89,37 @@ else:
 
     # 4. Page Routing Engine
     if nav_choice == "🏠 Dashboard":
-        from pages.dashboard import render_dashboard_page
+        from views.dashboard import render_dashboard_page
         render_dashboard_page()
 
     elif nav_choice == "👥 Candidates":
-        from pages.candidates import render_candidates_page
+        from views.candidates import render_candidates_page
         render_candidates_page()
 
     elif nav_choice == "📧 Email Automation":
-        from pages.email_automation import render_email_automation_page
+        from views.email_automation import render_email_automation_page
         render_email_automation_page()
 
     elif nav_choice == "📅 Campaigns & Scheduling":
-        from pages.campaigns import render_campaigns_page
+        from views.campaigns import render_campaigns_page
         render_campaigns_page()
 
     elif nav_choice == "📜 Email History":
-        from pages.email_logs import render_email_logs_page
+        from views.email_logs import render_email_logs_page
         render_email_logs_page()
 
     elif nav_choice == "📄 Documents":
-        from pages.documents import render_documents_page
+        from views.documents import render_documents_page
         render_documents_page()
 
     elif nav_choice == "📊 Analytics":
-        from pages.analytics import render_analytics_page
+        from views.analytics import render_analytics_page
         render_analytics_page()
 
     elif nav_choice == "🔔 Notifications":
-        from pages.notifications import render_notifications_page
+        from views.notifications import render_notifications_page
         render_notifications_page()
 
     elif nav_choice == "⚙️ Settings":
-        from pages.settings import render_settings_page
+        from views.settings import render_settings_page
         render_settings_page()

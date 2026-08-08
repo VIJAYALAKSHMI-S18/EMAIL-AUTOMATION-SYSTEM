@@ -1,5 +1,10 @@
-import streamlit as st
+import sys
 from pathlib import Path
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+import streamlit as st
 from database.database import (
     get_all_candidates,
     get_all_documents,
@@ -108,7 +113,6 @@ def render_documents_page():
 
     st.markdown(f"**Total Archived Files: {len(filtered_docs)}**")
 
-    # Document File Download Rows (Word .docx and PDF .pdf)
     for doc_item in filtered_docs:
         doc_id = doc_item["id"]
         c_id = doc_item["candidate_id"]
