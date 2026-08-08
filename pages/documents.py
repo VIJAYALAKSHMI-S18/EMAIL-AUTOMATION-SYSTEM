@@ -5,11 +5,11 @@ from database.database import (
     get_all_documents,
     save_document_record
 )
-from modules.document_generator import generate_offer_letter, generate_certificate
+from modules.document_generator import generate_offer_letter, generate_certificate, OFFER_DIR, CERT_DIR
 
 def render_documents_page():
-    st.markdown("## Document Generation")
-    st.markdown("Generate personalized `.docx` Offer Letters and Certificates for selected candidates.")
+    st.markdown("## Document Generation & Management")
+    st.markdown("Generate personalized Offer Letters and Certificates for selected candidates in both **Word (.docx)** and **PDF (.pdf)** formats.")
 
     all_candidates = get_all_candidates()
 
@@ -45,7 +45,7 @@ def render_documents_page():
         doc_type_choice = st.radio(
             "Document Type",
             ["Offer Letter", "Certificate", "Both"],
-            help="Choose document(s) to generate for target candidate(s)"
+            help="Generates both .docx and .pdf files for each candidate"
         )
 
     with g_col2:
@@ -61,7 +61,7 @@ def render_documents_page():
 
                 for idx, cand in enumerate(selected_candidates):
                     c_id = cand["candidate_id"]
-                    status_text.text(f"Generating documents for {cand['name']} ({c_id})...")
+                    status_text.text(f"Generating Word & PDF documents for {cand['name']} ({c_id})...")
 
                     try:
                         if doc_type_choice in ["Offer Letter", "Both"]:
@@ -79,7 +79,7 @@ def render_documents_page():
                     progress_bar.progress((idx + 1) / total)
 
                 status_text.text("Generation complete!")
-                st.success(f"Generated documents for {success_count} candidate(s) successfully.")
+                st.success(f"Generated Word and PDF documents for {success_count} candidate(s) successfully.")
                 st.rerun()
 
     st.markdown("---")
@@ -108,38 +108,54 @@ def render_documents_page():
 
     st.markdown(f"**Total Archived Files: {len(filtered_docs)}**")
 
-    # Document File Download Rows
+    # Document File Download Rows (Word .docx and PDF .pdf)
     for doc_item in filtered_docs:
         doc_id = doc_item["id"]
         c_id = doc_item["candidate_id"]
         c_name = doc_item["candidate_name"]
         doc_type = doc_item["document_type"]
-        f_name = doc_item["file_name"]
-        f_path = Path(doc_item["file_path"])
+        f_name_docx = doc_item["file_name"]
+        f_name_pdf = f_name_docx.replace(".docx", ".pdf")
+        
+        target_dir = OFFER_DIR if doc_type == "Offer Letter" else CERT_DIR
+        docx_path = target_dir / f_name_docx
+        pdf_path = target_dir / f_name_pdf
+
         gen_at = doc_item["generated_at"]
         status = doc_item["status"]
 
         with st.container():
-            col_info, col_status, col_dl = st.columns([5, 3, 2])
+            col_info, col_status, col_dl_docx, col_dl_pdf = st.columns([4, 2, 2, 2])
 
             with col_info:
                 st.markdown(f"**{doc_type}** | **{c_name}** (`{c_id}`)")
-                st.caption(f"Filename: `{f_name}` | Generated: {gen_at}")
+                st.caption(f"Filename: `{f_name_docx}` | Generated: {gen_at}")
 
             with col_status:
                 st.markdown(f"Status: **{status}**")
 
-            with col_dl:
-                if f_path.exists():
-                    with open(f_path, "rb") as f:
+            with col_dl_docx:
+                if docx_path.exists():
+                    with open(docx_path, "rb") as f:
                         st.download_button(
                             label="Download .docx",
                             data=f.read(),
-                            file_name=f_name,
+                            file_name=f_name_docx,
                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                            key=f"dl_btn_{doc_id}"
+                            key=f"dl_docx_{doc_id}"
+                        )
+
+            with col_dl_pdf:
+                if pdf_path.exists():
+                    with open(pdf_path, "rb") as f:
+                        st.download_button(
+                            label="Download .pdf",
+                            data=f.read(),
+                            file_name=f_name_pdf,
+                            mime="application/pdf",
+                            key=f"dl_pdf_{doc_id}"
                         )
                 else:
-                    st.warning("File missing")
+                    st.caption("PDF generating...")
 
             st.divider()

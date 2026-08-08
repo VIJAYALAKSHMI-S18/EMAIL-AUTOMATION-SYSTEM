@@ -8,21 +8,17 @@ from email.mime.base import MIMEBase
 from email import encoders
 from dotenv import load_dotenv
 
-from database.database import get_setting, log_email_send
+from database.database import get_setting, log_email_send, add_notification
 from modules.email_templates import personalize_text
 from modules.document_generator import generate_offer_letter, generate_certificate, OFFER_DIR, CERT_DIR
 
-# Load environment variables if .env exists
 load_dotenv()
 
 def get_smtp_credentials():
-    """
-    Retrieve SMTP email credentials from environment variables or Streamlit secrets / SQLite settings.
-    """
+    """Retrieve SMTP email credentials."""
     email_address = os.getenv("EMAIL_ADDRESS") or get_setting("sender_email", "")
     email_password = os.getenv("EMAIL_PASSWORD") or get_setting("sender_password", "")
 
-    # Try Streamlit Secrets if available
     try:
         import streamlit as st
         if hasattr(st, "secrets"):
@@ -37,34 +33,35 @@ def get_smtp_credentials():
 
 def resolve_candidate_attachments(candidate_data, attachment_option):
     """
-    Resolve and ensure attachment file paths exist.
-    If document does not exist, dynamically generate it!
+    Resolve attachment file paths (.docx and .pdf). Auto-generate if missing.
     """
     c_id = candidate_data.get("candidate_id", "")
     attachment_paths = []
 
     if attachment_option in ["Offer Letter", "Both"]:
-        offer_path = OFFER_DIR / f"{c_id}_Offer_Letter.docx"
-        if not offer_path.exists():
-            _, path_str = generate_offer_letter(candidate_data)
-            attachment_paths.append(Path(path_str))
-        else:
-            attachment_paths.append(offer_path)
+        offer_docx = OFFER_DIR / f"{c_id}_Offer_Letter.docx"
+        offer_pdf = OFFER_DIR / f"{c_id}_Offer_Letter.pdf"
+        if not offer_docx.exists() or not offer_pdf.exists():
+            generate_offer_letter(candidate_data)
+        if offer_pdf.exists():
+            attachment_paths.append(offer_pdf)
+        elif offer_docx.exists():
+            attachment_paths.append(offer_docx)
 
     if attachment_option in ["Certificate", "Both"]:
-        cert_path = CERT_DIR / f"{c_id}_Certificate.docx"
-        if not cert_path.exists():
-            _, path_str = generate_certificate(candidate_data)
-            attachment_paths.append(Path(path_str))
-        else:
-            attachment_paths.append(cert_path)
+        cert_docx = CERT_DIR / f"{c_id}_Certificate.docx"
+        cert_pdf = CERT_DIR / f"{c_id}_Certificate.pdf"
+        if not cert_docx.exists() or not cert_pdf.exists():
+            generate_certificate(candidate_data)
+        if cert_pdf.exists():
+            attachment_paths.append(cert_pdf)
+        elif cert_docx.exists():
+            attachment_paths.append(cert_docx)
 
     return attachment_paths
 
 def send_single_email_smtp(sender_email, sender_password, recipient_email, subject, body, attachment_paths=None):
-    """
-    Send an individual email using Gmail SMTP server.
-    """
+    """Send an individual email using Gmail SMTP server."""
     try:
         msg = MIMEMultipart()
         msg['From'] = sender_email
@@ -73,7 +70,6 @@ def send_single_email_smtp(sender_email, sender_password, recipient_email, subje
 
         msg.attach(MIMEText(body, 'plain'))
 
-        # Add attachments
         if attachment_paths:
             for path in attachment_paths:
                 if path.exists():
@@ -94,10 +90,7 @@ def send_single_email_smtp(sender_email, sender_password, recipient_email, subje
         return False, str(e)
 
 def process_email_dispatch(candidate_list, subject_template, body_template, attachment_option="None", progress_callback=None):
-    """
-    Batch process email sending for a list of selected candidates.
-    Supports both Demo Mode and Gmail SMTP mode.
-    """
+    """Batch process email sending for a list of selected candidates."""
     email_mode = get_setting("email_mode", "Demo Mode")
     sender_email, sender_password = get_smtp_credentials()
 
@@ -110,15 +103,12 @@ def process_email_dispatch(candidate_list, subject_template, body_template, atta
         rendered_subject = personalize_text(subject_template, candidate)
         rendered_body = personalize_text(body_template, candidate)
 
-        # Resolve attachments
         attachment_paths = resolve_candidate_attachments(candidate, attachment_option)
         attachment_names = ", ".join([p.name for p in attachment_paths]) if attachment_paths else "None"
 
         if email_mode == "Demo Mode":
-            # Simulate slight delay for realistic UX demonstration
-            time.sleep(0.3)
+            time.sleep(0.2)
             status = "SUCCESS"
-            error_msg = ""
             log_email_send(c_id, recipient_email, rendered_subject, status, "Simulated successfully (Demo Mode)", attachment_names)
             results.append({
                 "candidate_id": c_id,
@@ -129,10 +119,9 @@ def process_email_dispatch(candidate_list, subject_template, body_template, atta
                 "attachment": attachment_names
             })
         else:
-            # Real Gmail SMTP Mode
             if not sender_email or not sender_password:
                 status = "FAILED"
-                error_msg = "Gmail credentials not configured. Please set EMAIL_ADDRESS and EMAIL_PASSWORD in Settings or Streamlit Secrets."
+                error_msg = "Gmail credentials not configured."
                 log_email_send(c_id, recipient_email, rendered_subject, status, error_msg, attachment_names)
                 results.append({
                     "candidate_id": c_id,
@@ -158,12 +147,14 @@ def process_email_dispatch(candidate_list, subject_template, body_template, atta
         if progress_callback:
             progress_callback(idx + 1, total)
 
+    s_count = len([r for r in results if r["status"] == "SUCCESS"])
+    f_count = len([r for r in results if r["status"] == "FAILED"])
+    add_notification("Email Dispatch Completed", f"Sent/Logged {s_count} successful emails, {f_count} failed.", "Success" if f_count == 0 else "Warning")
+
     return results
 
 def retry_single_email_log(log_id):
-    """
-    Retry sending a previously failed email by log_id.
-    """
+    """Retry sending a failed email by log_id."""
     from database.database import get_connection
     conn = get_connection()
     cursor = conn.cursor()
@@ -189,14 +180,14 @@ def retry_single_email_log(log_id):
     sender_email, sender_password = get_smtp_credentials()
 
     if email_mode == "Demo Mode":
-        time.sleep(0.3)
-        log_email_send(c_id, candidate["email"], log_data["subject"], "SUCCESS", "Retried and simulated successfully (Demo Mode)", log_data.get("attachment", ""))
+        time.sleep(0.2)
+        log_email_send(c_id, candidate["email"], log_data["subject"], "SUCCESS", "Retried successfully (Demo Mode)", log_data.get("attachment", ""))
+        add_notification("Email Retried", f"Retried email for {candidate['name']} ({c_id}).", "Success")
         return True, "Simulated retry successful"
     else:
         if not sender_email or not sender_password:
             return False, "Gmail credentials missing"
         
-        # Check attachment files
         attachment_paths = []
         if log_data.get("attachment") and log_data["attachment"] != "None":
             for fname in log_data["attachment"].split(", "):
@@ -206,8 +197,9 @@ def retry_single_email_log(log_id):
                     attachment_paths.append(CERT_DIR / fname)
 
         success, msg = send_single_email_smtp(
-            sender_email, sender_password, candidate["email"], log_data["subject"], "Retried Email Communication", attachment_paths
+            sender_email, sender_password, candidate["email"], log_data["subject"], "Retried Communication", attachment_paths
         )
         status = "SUCCESS" if success else "FAILED"
         log_email_send(c_id, candidate["email"], log_data["subject"], status, "" if success else msg, log_data.get("attachment", ""))
+        add_notification("Email Retried", f"Retried email for {candidate['name']} ({c_id}). Status: {status}", "Success" if success else "Warning")
         return success, msg

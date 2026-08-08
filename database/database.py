@@ -76,6 +76,30 @@ def init_db():
     )
     """)
 
+    # Campaigns table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS campaigns (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        campaign_name TEXT NOT NULL,
+        template_name TEXT NOT NULL,
+        recipient_count INTEGER NOT NULL,
+        status TEXT DEFAULT 'Draft',
+        scheduled_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # Notifications table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        category TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
     # Settings table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS settings (
@@ -89,7 +113,7 @@ def init_db():
     conn.close()
 
 def seed_default_data(conn):
-    """Seed initial settings and templates if empty."""
+    """Seed initial settings, templates, and notifications if empty."""
     cursor = conn.cursor()
 
     # Default Settings
@@ -99,32 +123,48 @@ def seed_default_data(conn):
         ("company_name", "ABC Technologies"),
         ("hr_name", "Recruitment Team"),
         ("hr_email", "hr@abctechnologies.com"),
-        ("company_address", "Tech Park, Innovation Way, Suite 500")
+        ("company_address", "Tech Park, Innovation Way, Suite 500"),
+        ("admin_email", "admin@abctechnologies.com"),
+        ("admin_password", "admin123"),
+        ("confirm_before_send", "True"),
+        ("save_email_history", "True"),
+        ("auto_gen_docs", "False"),
+        ("show_notifications", "True")
     ]
     for key, val in default_settings:
         cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (key, val))
 
-    # Default Email Templates
+    # Extended Default Email Templates (supporting both {{placeholder}} and {Placeholder})
     default_templates = [
         (
-            "Selection Email",
-            "Congratulations! Your Selection for {Position} at {Company}",
-            "Dear {Name},\n\nCongratulations!\n\nWe are pleased to inform you that you have been selected for the position of {Position} at {Company}.\n\nYour joining date is {Joining_Date}.\n\nWe look forward to welcoming you to our organization.\n\nRegards,\nHR Team\n{Company}"
+            "Selection / Offer Email",
+            "Congratulations! Your Selection for {{position}} at {{company}}",
+            "Dear {{name}},\n\nCongratulations!\n\nWe are pleased to inform you that you have been selected for the position of {{position}} in the {{department}} department at {{company}}.\n\nJoining Date: {{joining_date}}\n\nPlease review your attached Offer Letter and confirm your acceptance.\n\nRegards,\nHR Team\n{{company}}"
         ),
         (
-            "Offer Letter",
-            "Offer Letter – {Position} at {Company}",
-            "Dear {Name},\n\nPlease find attached your official Offer Letter for the position of {Position} in the {Department} department at {Company}.\n\nJoining Date: {Joining_Date}\nSalary: {Salary}\n\nPlease review the attached document and return a signed copy at your earliest convenience.\n\nRegards,\nHR Team\n{Company}"
+            "Interview Invitation",
+            "Interview Invitation for {{position}} Position at {{company}}",
+            "Dear {{name}},\n\nThank you for applying for the {{position}} role in our {{department}} department at {{company}}.\n\nWe would like to invite you for a formal interview session.\n\nPlease reply with your availability for the coming week.\n\nBest regards,\nHR Team\n{{company}}"
         ),
         (
-            "Certificate",
-            "Selection Certificate – {Company}",
-            "Dear {Name},\n\nWe are pleased to present your Selection Certificate for the position of {Position} at {Company}.\n\nPlease find your official certificate attached to this email.\n\nRegards,\nHR Team\n{Company}"
+            "Rejection Email",
+            "Update regarding your application for {{position}} at {{company}}",
+            "Dear {{name}},\n\nThank you for taking the time to interview for the {{position}} role at {{company}}.\n\nAfter careful consideration, we regret to inform you that we have decided to move forward with another candidate whose background more closely aligns with our current needs.\n\nWe wish you all the best in your job search.\n\nRegards,\nRecruitment Team\n{{company}}"
         ),
         (
-            "Custom Email",
-            "Update regarding your application at {Company}",
-            "Dear {Name},\n\nThank you for taking the time to interview with us for the {Position} position at {Company}.\n\nIf you have any questions, feel free to reply directly to this email.\n\nBest regards,\nHR Team\n{Company}"
+            "Internship Email",
+            "Internship Offer - {{position}} at {{company}}",
+            "Dear {{name}},\n\nWe are excited to offer you an internship position as {{position}} in the {{department}} team at {{company}}.\n\nStart Date: {{joining_date}}\n\nWelcome aboard!\n\nRegards,\nHR Team\n{{company}}"
+        ),
+        (
+            "Certificate Email",
+            "Selection Certificate - {{company}}",
+            "Dear {{name}},\n\nPlease find attached your official Selection Certificate for the {{position}} role at {{company}}.\n\nCongratulations once again on your selection.\n\nRegards,\nHR Team\n{{company}}"
+        ),
+        (
+            "Joining Instructions",
+            "Joining Instructions & Onboarding Guide - {{company}}",
+            "Dear {{name}},\n\nWelcome to {{company}}! As your joining date of {{joining_date}} approaches, please find below important onboarding instructions for your role as {{position}}.\n\nPlease bring your ID proof and educational certificates on your first day.\n\nBest regards,\nHR Department\n{{company}}"
         )
     ]
     for t_name, t_sub, t_body in default_templates:
@@ -132,6 +172,17 @@ def seed_default_data(conn):
             "INSERT OR IGNORE INTO email_templates (template_name, subject, body) VALUES (?, ?, ?)",
             (t_name, t_sub, t_body)
         )
+
+    # Default Notifications if empty
+    cursor.execute("SELECT COUNT(*) FROM notifications")
+    if cursor.fetchone()[0] == 0:
+        notifications_data = [
+            ("System Ready", "Recruitment Email Automation Portal initialized successfully.", "Success"),
+            ("Sample Candidates Loaded", "10 initial sample candidate records imported.", "Info"),
+            ("Demo Mode Active", "Emails are currently running in simulated Demo Mode.", "Warning")
+        ]
+        for title, msg, cat in notifications_data:
+            cursor.execute("INSERT INTO notifications (title, message, category) VALUES (?, ?, ?)", (title, msg, cat))
 
     conn.commit()
 
@@ -187,6 +238,7 @@ def insert_candidate(data):
     ))
     conn.commit()
     conn.close()
+    add_notification("New Candidate Added", f"Added candidate {data['Name']} ({data['Candidate_ID']}).", "Success")
 
 def update_candidate(candidate_id, updates):
     """Update candidate details."""
@@ -243,6 +295,7 @@ def upsert_candidates_bulk(candidates_list):
 
     conn.commit()
     conn.close()
+    add_notification("Excel Upload Completed", f"Imported {inserted_count + updated_count} candidates from Excel.", "Success")
     return inserted_count, updated_count
 
 def save_document_record(candidate_id, doc_type, file_name, file_path):
@@ -254,7 +307,6 @@ def save_document_record(candidate_id, doc_type, file_name, file_path):
         VALUES (?, ?, ?, ?, 'Generated')
     """, (candidate_id, doc_type, file_name, file_path))
     
-    # Update candidate status if applicable
     if doc_type == "Offer Letter":
         cursor.execute("UPDATE candidates SET offer_status = 'Generated' WHERE candidate_id = ?", (candidate_id,))
     elif doc_type == "Certificate":
@@ -262,15 +314,6 @@ def save_document_record(candidate_id, doc_type, file_name, file_path):
         
     conn.commit()
     conn.close()
-
-def get_documents_by_candidate(candidate_id):
-    """Fetch generated documents for a candidate."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM documents WHERE candidate_id = ? ORDER BY generated_at DESC", (candidate_id,))
-    rows = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return rows
 
 def get_all_documents():
     """Fetch all generated documents with candidate names."""
@@ -330,3 +373,41 @@ def save_email_template(name, subject, body):
     """, (name, subject, body))
     conn.commit()
     conn.close()
+
+def add_notification(title, message, category="Info"):
+    """Record a system notification alert."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO notifications (title, message, category) VALUES (?, ?, ?)", (title, message, category))
+    conn.commit()
+    conn.close()
+
+def get_all_notifications():
+    """Fetch all notification records."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50")
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
+
+def save_campaign(campaign_name, template_name, recipient_count, status="Completed", scheduled_at=None):
+    """Record email campaign."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO campaigns (campaign_name, template_name, recipient_count, status, scheduled_at)
+        VALUES (?, ?, ?, ?, ?)
+    """, (campaign_name, template_name, recipient_count, status, scheduled_at))
+    conn.commit()
+    conn.close()
+    add_notification("Campaign Triggered", f"Campaign '{campaign_name}' ({recipient_count} recipients) marked as {status}.", "Success" if status == "Completed" else "Info")
+
+def get_all_campaigns():
+    """Fetch all recorded campaigns."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM campaigns ORDER BY created_at DESC")
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows

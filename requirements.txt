@@ -1,6 +1,7 @@
 streamlit
 pandas
 openpyxl
+plotly
 python-docx
-matplotlib
+reportlab
 python-dotenv
