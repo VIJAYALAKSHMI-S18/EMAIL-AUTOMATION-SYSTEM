@@ -46,34 +46,15 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # User Theme Selection Dropdown
-    theme_choice = st.sidebar.selectbox(
-        "App Theme Preference",
-        ["Dark Mode", "Light Mode"],
-        index=0 if active_theme == "dark" else 1,
-        key="theme_selection_select"
-    )
-    chosen_theme = "dark" if theme_choice == "Dark Mode" else "light"
-    if chosen_theme != active_theme:
-        set_theme(chosen_theme)
-        st.rerun()
-
-    st.sidebar.markdown("---")
-
-    # Navigation Menu
+    # Streamlined 5-Item Navigation Menu
     nav_choice = st.sidebar.radio(
         "Main Navigation",
         [
             "🏠 Dashboard",
-            "📖 User Manual",
             "👥 Candidates",
-            "📧 Email Automation",
-            "📅 Campaigns & Scheduling",
-            "📜 Email History",
-            "📄 Documents",
-            "📊 Analytics",
-            "🔔 Notifications",
-            "⚙️ Settings"
+            "📧 Email & Documents",
+            "📊 Analytics & Logs",
+            "⚙️ Settings & Help"
         ],
         index=0
     )
@@ -87,47 +68,27 @@ else:
 
     st.sidebar.markdown("""
     <div style="text-align: center; font-size: 11px; color: var(--text-primary); margin-top: 20px; font-weight: 500;">
-        RecruitFlow Enterprise v2.5<br/>SaaS Edition
+        RecruitFlow Enterprise v2.5
     </div>
     """, unsafe_allow_html=True)
 
-    # 4. Page Routing Engine
+    # 4. Streamlined Page Router Engine
     if nav_choice == "🏠 Dashboard":
         from views.dashboard import render_dashboard_page
         render_dashboard_page()
-
-    elif nav_choice == "📖 User Manual":
-        from views.user_manual import render_user_manual_page
-        render_user_manual_page()
 
     elif nav_choice == "👥 Candidates":
         from views.candidates import render_candidates_page
         render_candidates_page()
 
-    elif nav_choice == "📧 Email Automation":
-        from views.email_automation import render_email_automation_page
-        render_email_automation_page()
+    elif nav_choice == "📧 Email & Documents":
+        from views.email_documents import render_email_documents_page
+        render_email_documents_page()
 
-    elif nav_choice == "📅 Campaigns & Scheduling":
-        from views.campaigns import render_campaigns_page
-        render_campaigns_page()
+    elif nav_choice == "📊 Analytics & Logs":
+        from views.analytics_logs import render_analytics_logs_page
+        render_analytics_logs_page()
 
-    elif nav_choice == "📜 Email History":
-        from views.email_logs import render_email_logs_page
-        render_email_logs_page()
-
-    elif nav_choice == "📄 Documents":
-        from views.documents import render_documents_page
-        render_documents_page()
-
-    elif nav_choice == "📊 Analytics":
-        from views.analytics import render_analytics_page
-        render_analytics_page()
-
-    elif nav_choice == "🔔 Notifications":
-        from views.notifications import render_notifications_page
-        render_notifications_page()
-
-    elif nav_choice == "⚙️ Settings":
-        from views.settings import render_settings_page
-        render_settings_page()
+    elif nav_choice == "⚙️ Settings & Help":
+        from views.settings_help import render_settings_help_page
+        render_settings_help_page()
