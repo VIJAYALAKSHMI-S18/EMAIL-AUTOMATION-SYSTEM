@@ -65,6 +65,7 @@ else:
         "Main Navigation",
         [
             "🏠 Dashboard",
+            "📖 User Manual",
             "👥 Candidates",
             "📧 Email Automation",
             "📅 Campaigns & Scheduling",
@@ -94,6 +95,10 @@ else:
     if nav_choice == "🏠 Dashboard":
         from views.dashboard import render_dashboard_page
         render_dashboard_page()
+
+    elif nav_choice == "📖 User Manual":
+        from views.user_manual import render_user_manual_page
+        render_user_manual_page()
 
     elif nav_choice == "👥 Candidates":
         from views.candidates import render_candidates_page
