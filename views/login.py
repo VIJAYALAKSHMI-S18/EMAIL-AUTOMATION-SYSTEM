@@ -8,42 +8,23 @@ import streamlit as st
 from utils.auth import login_user
 
 def render_login_page():
-    # Hero Title Header
-    st.markdown("""
-    <div style="text-align: center; padding: 15px 0 25px 0;">
-        <h1 style="font-size: 34px; font-weight: 800; margin-bottom: 6px;">Email Automation Portal</h1>
-        <p style="font-size: 15px; opacity: 0.85; margin-top: 0;">Smart Recruitment Communication Management</p>
-    </div>
-    """, unsafe_allow_html=True)
+    # Use centered columns for a sleek, minimal, clutter-free login card
+    _, col_center, _ = st.columns([1, 1.2, 1])
 
-    # Main Two-Column Layout
-    col_info, col_login = st.columns([1.1, 1], gap="large")
-
-    with col_info:
-        st.markdown("### Executive HR Platform")
-        st.write(
-            "Streamline your recruitment communication workflow from candidate data import to document issuance, "
-            "email campaign dispatches, and real-time hiring analytics."
-        )
-
-        st.markdown("#### Automated Recruitment Pipeline")
+    with col_center:
+        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+        
+        # Header Brand Logo & Title
         st.markdown("""
-        - **1. Excel Data Ingestion**: Import candidates with validation & duplicate detection.
-        - **2. Candidate Management**: Filter, search, and manage candidate directory.
-        - **3. Document Generation**: Generate personalized Word (.docx) & PDF (.pdf) offer letters and certificates.
-        - **4. Email Automation**: Compose personalized emails with attachments & preview.
-        - **5. Tracking & Analytics**: Audit dispatch history with failure retry and Plotly charts.
-        """)
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="font-size: 40px; margin-bottom: 5px;">⚡</div>
+            <h2 style="font-size: 26px; font-weight: 800; margin: 0;">RecruitFlow</h2>
+            <p style="font-size: 13px; opacity: 0.75; margin-top: 4px;">Recruitment Email Automation Portal</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.markdown("---")
-        st.info("💡 **Demo System**: Supports both simulated Demo Mode and live Gmail SMTP transmission.")
-
-    with col_login:
-        st.markdown("### HR Admin Sign In")
-        st.write("Enter administrative credentials to access your portal workspace.")
-
-        with st.form("form_executive_login"):
-            # Empty input boxes with helpful placeholder hints (NO auto-filled values)
+        # Minimal Sign In Form Card
+        with st.form("form_clean_login"):
             username_input = st.text_input(
                 "Username or Email",
                 value="",
@@ -54,31 +35,29 @@ def render_login_page():
                 "Password",
                 type="password",
                 value="",
-                placeholder="Enter your password",
+                placeholder="Enter password",
                 key="login_pass_field"
             )
 
-            chk_remember = st.checkbox("Remember me in this session", value=True, key="login_remember_chk")
-
-            btn_submit_login = st.form_submit_button("Sign In to Portal 🚀", type="primary", use_container_width=True)
+            chk_remember = st.checkbox("Remember me", value=True, key="login_remember_chk")
+            btn_submit_login = st.form_submit_button("Sign In 🚀", type="primary", use_container_width=True)
 
             if btn_submit_login:
                 if not username_input or not password_input:
-                    st.error("Please enter both username/email and password.")
+                    st.error("Please enter both username and password.")
                 else:
-                    with st.spinner("Authenticating credentials..."):
+                    with st.spinner("Authenticating..."):
                         success, msg = login_user(username_input, password_input)
                         if success:
-                            st.success("Authentication successful! Loading workspace...")
+                            st.success("Welcome back!")
                             st.rerun()
                         else:
                             st.error(msg)
 
-        # Clean Demo Credentials Display (No overlapping text)
-        st.markdown("---")
-        st.markdown("#### Demo Access Credentials")
+        # Minimal Demo Hint Box (No walls of text)
         st.markdown("""
-        * **Default Email**: `admin@abctechnologies.com`
-        * **Default Password**: `admin123`
-        """)
-        st.caption("Enter the above default credentials into the Sign In fields to log in.")
+        <div class="exec-card" style="text-align: center; padding: 12px; margin-top: 15px;">
+            <span style="font-size: 12px; font-weight: 600;">🔑 Demo Credentials:</span><br/>
+            <code style="font-size: 12px;">admin@abctechnologies.com</code> &nbsp;|&nbsp; <code style="font-size: 12px;">admin123</code>
+        </div>
+        """, unsafe_allow_html=True)
