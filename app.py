@@ -37,12 +37,12 @@ else:
     # Authenticated Main Portal Layout
     user_info = get_current_user()
 
-    # Sidebar Branding Header
+    # Sidebar Header
     st.sidebar.markdown(f"""
-    <div style="text-align: center; padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #3B82F6;">RecruitFlow</h2>
-        <p style="margin: 2px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7;">Enterprise HR Portal</p>
-        <p style="margin: 6px 0 0 0; font-size: 12px; font-weight: 600;">👤 {user_info['name']}</p>
+    <div style="text-align: center; padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.15);">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: #3B82F6;">RecruitFlow</h2>
+        <div style="margin: 4px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: var(--text-primary);">Enterprise HR Portal</div>
+        <div style="margin: 6px 0 0 0; font-size: 13px; font-weight: 600; color: var(--text-primary);">👤 {user_info['name']}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -85,7 +85,7 @@ else:
         st.rerun()
 
     st.sidebar.markdown("""
-    <div style="text-align: center; font-size: 11px; opacity: 0.6; margin-top: 20px;">
+    <div style="text-align: center; font-size: 11px; color: var(--text-primary); margin-top: 20px; font-weight: 500;">
         RecruitFlow Enterprise v2.5<br/>SaaS Edition
     </div>
     """, unsafe_allow_html=True)
