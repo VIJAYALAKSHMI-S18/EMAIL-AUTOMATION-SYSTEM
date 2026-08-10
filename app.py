@@ -11,7 +11,7 @@ import os
 from database.database import init_db
 from modules.candidate_manager import seed_sample_candidates_if_empty
 from utils.auth import is_authenticated, logout_user, get_current_user
-from utils.theme import get_current_theme, toggle_theme, inject_custom_theme
+from utils.theme import get_current_theme, set_theme, inject_custom_theme
 
 # Page Configuration
 st.set_page_config(
@@ -25,7 +25,7 @@ st.set_page_config(
 init_db()
 seed_sample_candidates_if_empty()
 
-# 2. Inject Executive Custom Theme CSS
+# 2. Inject Custom Theme Styling
 active_theme = get_current_theme()
 inject_custom_theme(active_theme)
 
@@ -37,7 +37,7 @@ else:
     # Authenticated Main Portal Layout
     user_info = get_current_user()
 
-    # Sidebar Header
+    # Sidebar Branding Header
     st.sidebar.markdown(f"""
     <div style="text-align: center; padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
         <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #3B82F6;">RecruitFlow</h2>
@@ -46,14 +46,17 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # Theme Switcher Button in Sidebar
-    t_col1, t_col2 = st.sidebar.columns([3, 1])
-    with t_col1:
-        st.markdown(f"**Theme**: {'🌙 Dark' if active_theme == 'dark' else '☀️ Light'}")
-    with t_col2:
-        if st.button("🔄", key="theme_toggle_btn", help="Switch between Dark & Light Mode"):
-            toggle_theme()
-            st.rerun()
+    # User Theme Selection Dropdown
+    theme_choice = st.sidebar.selectbox(
+        "App Theme Preference",
+        ["Dark Mode", "Light Mode"],
+        index=0 if active_theme == "dark" else 1,
+        key="theme_selection_select"
+    )
+    chosen_theme = "dark" if theme_choice == "Dark Mode" else "light"
+    if chosen_theme != active_theme:
+        set_theme(chosen_theme)
+        st.rerun()
 
     st.sidebar.markdown("---")
 

@@ -8,14 +8,16 @@ import streamlit as st
 import os
 from database.database import get_setting, set_setting
 from utils.auth import get_current_user
+from utils.theme import get_current_theme, set_theme
 
 def render_settings_page():
     st.markdown("## System Settings & Configuration")
-    st.markdown("Configure HR profile details, email transmission modes, Gmail SMTP credentials, and application preferences.")
+    st.markdown("Configure HR profile details, email transmission modes, Gmail SMTP credentials, theme preferences, and application options.")
 
     user = get_current_user()
+    active_theme = get_current_theme()
 
-    tab_profile, tab_email, tab_app = st.tabs(["Profile", "Email Configuration", "Application Settings"])
+    tab_profile, tab_email, tab_app = st.tabs(["Profile", "Email Configuration", "Application & Theme Settings"])
 
     with tab_profile:
         st.markdown("### HR Profile Settings")
@@ -79,7 +81,20 @@ def render_settings_page():
             """)
 
     with tab_app:
-        st.markdown("### Application Preferences")
+        st.markdown("### App Theme Preference")
+        selected_theme = st.selectbox(
+            "Visual Theme",
+            ["Dark Mode", "Light Mode"],
+            index=0 if active_theme == "dark" else 1,
+            key="settings_theme_select"
+        )
+        new_theme = "dark" if selected_theme == "Dark Mode" else "light"
+        if new_theme != active_theme:
+            set_theme(new_theme)
+            st.rerun()
+
+        st.markdown("---")
+        st.markdown("### Application Options")
         
         c_confirm = get_setting("confirm_before_send", "True") == "True"
         c_history = get_setting("save_email_history", "True") == "True"
@@ -92,7 +107,7 @@ def render_settings_page():
             f_autogen = st.checkbox("Automatically generate missing documents on send", value=c_autogen)
             f_notif = st.checkbox("Show system notifications", value=c_notif)
 
-            submit_app = st.form_submit_button("Save Application Preferences")
+            submit_app = st.form_submit_button("Save Application Options")
             if submit_app:
                 set_setting("confirm_before_send", str(f_confirm))
                 set_setting("save_email_history", str(f_history))
